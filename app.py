@@ -5,7 +5,7 @@ import datetime
 st.set_page_config(page_title="Plano de Estudos - Tech + Saúde", layout="wide")
 
 st.title("📅 Plano de Estudos Tech + Saúde")
-st.write("Marque as atividades concluídas. O progresso será salvo direto no Firebase.")
+st.write("Monte e acompanhe seu cronograma. O progresso será salvo no Firebase.")
 
 # -----------------------------
 # CONFIG FIREBASE
@@ -32,57 +32,40 @@ def salvar_progresso(progresso):
         return False
 
 # -----------------------------
-# PLANO DE ESTUDOS
+# CONFIGURAÇÕES DO USUÁRIO
 # -----------------------------
-plano_estudos = {
-    "Segunda-feira (2h)": [
-        "Suzano - Python Developer #2 (1h30)",
-        "Exercícios práticos (30min)"
-    ],
-    "Terça-feira (2h)": [
-        "Formação CSS Web Developer (1h30)",
-        "Exercícios físicos (musculação em casa) (30min)"
-    ],
-    "Quarta-feira (2h)": [
-        "Formação React Developer (1h30)",
-        "Exercícios práticos (30min)"
-    ],
-    "Quinta-feira (2h)": [
-        "Formação JavaScript Developer (1h30)",
-        "Exercícios físicos (musculação em casa) (30min)"
-    ],
-    "Sexta-feira (2h)": [
-        "Cursos/Imersões paralelos (IA, BD, Ciência de Dados) (1h30)",
-        "Exercícios práticos (30min)"
-    ],
-    "Sábado (até 6h – tarde/noite)": [
-        "Python Developer (1h30)",
-        "CSS Web Developer (1h)",
-        "React Developer (1h)",
-        "JavaScript Developer (1h)",
-        "Exercícios práticos (30min)",
-        "Cursos/Imersões paralelos (1h)",
-        "Exercícios físicos (musculação em casa) (30min)"
-    ],
-    "Domingo (até 6h – manhã/tarde/noite)": [
-        "Python Developer (1h)",
-        "CSS Web Developer (1h)",
-        "React Developer (1h)",
-        "JavaScript Developer (1h)",
-        "Cursos/Imersões paralelos (1h)",
-        "Projetos práticos/Desafios (30min)",
-        "Exercícios físicos (musculação em casa) (30min)"
-    ]
-}
+st.sidebar.header("⚙️ Configurações do Plano")
+data_inicio = st.sidebar.date_input("Data de início", datetime.date(2025, 9, 22))
+quant_semanas = st.sidebar.number_input("Quantas semanas?", min_value=1, max_value=52, value=12)
+
+st.sidebar.write("✏️ Personalize as atividades de cada dia:")
+
+plano_estudos = {}
+dias_semana = [
+    "Segunda-feira (2h)",
+    "Terça-feira (2h)",
+    "Quarta-feira (2h)",
+    "Quinta-feira (2h)",
+    "Sexta-feira (2h)",
+    "Sábado (até 6h – tarde/noite)",
+    "Domingo (até 6h – manhã/tarde/noite)"
+]
+
+for dia in dias_semana:
+    st.sidebar.subheader(dia)
+    atividades = st.sidebar.text_area(
+        f"Atividades para {dia}",
+        value=";\n".join([
+            "Curso principal (1h30)",
+            "Exercícios práticos (30min)"
+        ]),
+        height=100
+    )
+    plano_estudos[dia] = [a.strip() for a in atividades.split(";") if a.strip()]
 
 # -----------------------------
-# GERAR VÁRIAS SEMANAS (a partir de 22/09/2025)
+# GERAR CALENDÁRIO DE ESTUDOS
 # -----------------------------
-data_inicio = datetime.date(2025, 9, 22)  # Segunda-feira inicial
-dias_semana = list(plano_estudos.keys())
-
-quant_semanas = 12  # <<< Altere este número se quiser mais ou menos semanas
-
 datas_com_atividades = {}
 for semana in range(quant_semanas):
     for i, dia in enumerate(dias_semana):
