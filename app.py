@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import datetime
 
 st.set_page_config(page_title="Plano de Estudos - Tech + Saúde", layout="wide")
 
@@ -9,11 +10,8 @@ st.write("Marque as atividades concluídas. O progresso será salvo direto no Fi
 # -----------------------------
 # CONFIG FIREBASE
 # -----------------------------
-# 🔥 Coloque aqui a URL do seu Firebase Realtime Database
-# Exemplo: "https://SEU-PROJETO-default-rtdb.firebaseio.com"
-FIREBASE_URL = "https://console.firebase.google.com/u/1/project/study-a5b49/database/study-a5b49-default-rtdb/data/~2F?hl=pt-br"
+FIREBASE_URL = "https://study-a5b49-default-rtdb.firebaseio.com/"
 
-# Função para carregar progresso
 def carregar_progresso():
     url = f"{FIREBASE_URL}/progresso.json"
     try:
@@ -24,7 +22,6 @@ def carregar_progresso():
         st.error(f"Erro ao carregar progresso: {e}")
     return {}
 
-# Função para salvar progresso
 def salvar_progresso(progresso):
     url = f"{FIREBASE_URL}/progresso.json"
     try:
@@ -79,11 +76,24 @@ plano_estudos = {
 }
 
 # -----------------------------
+# GERAR DATAS INICIANDO EM 22/09/2025
+# -----------------------------
+data_inicio = datetime.date(2025, 9, 22)  # segunda-feira
+dias_semana = list(plano_estudos.keys())
+
+datas_com_atividades = {}
+for i, dia in enumerate(dias_semana):
+    data_atual = data_inicio + datetime.timedelta(days=i)
+    data_formatada = data_atual.strftime("%d/%m/%Y")
+    titulo = f"{dia} - {data_formatada}"
+    datas_com_atividades[titulo] = plano_estudos[dia]
+
+# -----------------------------
 # APP STREAMLIT
 # -----------------------------
 progresso = carregar_progresso()
 
-for dia, atividades in plano_estudos.items():
+for dia, atividades in datas_com_atividades.items():
     st.subheader(dia)
     for atividade in atividades:
         checked = progresso.get(dia, {}).get(atividade, False)
@@ -98,4 +108,3 @@ if st.button("💾 Salvar progresso no Firebase"):
         st.success("✅ Progresso salvo com sucesso no Firebase!")
     else:
         st.error("❌ Erro ao salvar. Verifique sua URL do Firebase.")
-
