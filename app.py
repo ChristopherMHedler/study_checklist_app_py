@@ -76,17 +76,20 @@ plano_estudos = {
 }
 
 # -----------------------------
-# GERAR DATAS INICIANDO EM 22/09/2025
+# GERAR VÁRIAS SEMANAS (a partir de 22/09/2025)
 # -----------------------------
-data_inicio = datetime.date(2025, 9, 22)  # segunda-feira
+data_inicio = datetime.date(2025, 9, 22)  # Segunda-feira inicial
 dias_semana = list(plano_estudos.keys())
 
+quant_semanas = 12  # <<< Altere este número se quiser mais ou menos semanas
+
 datas_com_atividades = {}
-for i, dia in enumerate(dias_semana):
-    data_atual = data_inicio + datetime.timedelta(days=i)
-    data_formatada = data_atual.strftime("%d/%m/%Y")
-    titulo = f"{dia} - {data_formatada}"
-    datas_com_atividades[titulo] = plano_estudos[dia]
+for semana in range(quant_semanas):
+    for i, dia in enumerate(dias_semana):
+        data_atual = data_inicio + datetime.timedelta(days=(semana * 7) + i)
+        data_formatada = data_atual.strftime("%d/%m/%Y")
+        titulo = f"{dia} - {data_formatada}"
+        datas_com_atividades[titulo] = plano_estudos[dia]
 
 # -----------------------------
 # APP STREAMLIT
