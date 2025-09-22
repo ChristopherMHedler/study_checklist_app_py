@@ -11,7 +11,7 @@ st.write("Marque as atividades concluídas. O progresso será salvo direto no Fi
 # -----------------------------
 # 🔥 Coloque aqui a URL do seu Firebase Realtime Database
 # Exemplo: "https://SEU-PROJETO-default-rtdb.firebaseio.com"
-FIREBASE_URL = "https://study-a5b49-default-rtdb.firebaseio.com/"
+FIREBASE_URL = "https://console.firebase.google.com/u/1/project/study-a5b49/database/study-a5b49-default-rtdb/data/~2F?hl=pt-br"
 
 # Função para carregar progresso
 def carregar_progresso():
@@ -98,3 +98,4 @@ if st.button("💾 Salvar progresso no Firebase"):
         st.success("✅ Progresso salvo com sucesso no Firebase!")
     else:
         st.error("❌ Erro ao salvar. Verifique sua URL do Firebase.")
+
