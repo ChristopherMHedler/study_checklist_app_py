@@ -2,16 +2,42 @@ import streamlit as st
 import requests
 import datetime
 import pandas as pd
+from streamlit_oauth import OAuth2Component
 
 st.set_page_config(page_title="Plano de Estudos - Tech + Saúde", layout="wide")
 
 st.title("📅 Plano de Estudos Tech + Saúde")
-st.write("Monte e acompanhe seu cronograma. O progresso será salvo no Firebase.")
+
+# -----------------------------
+# AUTENTICAÇÃO COM GITHUB
+# -----------------------------
+CLIENT_ID = st.secrets["GITHUB_CLIENT_ID"]
+CLIENT_SECRET = st.secrets["GITHUB_CLIENT_SECRET"]
+AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+TOKEN_URL = "https://github.com/login/oauth/access_token"
+REDIRECT_URI = "https://studychecklistapppy-3wyxfbdh4urhmvlnxgvlwz.streamlit.app"
+
+oauth2 = OAuth2Component(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    authorize_url=AUTHORIZE_URL,
+    token_url=TOKEN_URL,
+    redirect_uri=REDIRECT_URI,
+)
+
+if "token" not in st.session_state:
+    result = oauth2.authorize_button("🔑 Login com GitHub", key="login")
+    if result:
+        st.session_state.token = result.get("access_token")
+
+if "token" not in st.session_state:
+    st.warning("Faça login com GitHub para acessar o cronograma.")
+    st.stop()
 
 # -----------------------------
 # CONFIG FIREBASE
 # -----------------------------
-FIREBASE_URL = "https://SEU-PROJETO.firebaseio.com"
+FIREBASE_URL = "https://study-a5b49-default-rtdb.firebaseio.com/"
 
 def carregar_progresso():
     url = f"{FIREBASE_URL}/progresso.json"
