@@ -44,9 +44,20 @@ quant_semanas = st.sidebar.number_input("Quantas semanas?", min_value=1, max_val
 # -----------------------------
 st.sidebar.subheader("📚 Cursos")
 
+# Cursos padrão
+cursos_padrao = [
+    "Suzano - Python Developer #2",
+    "Formação CSS Web Developer",
+    "Formação React Developer",
+    "Formação JavaScript Developer",
+    "Exercícios práticos",
+    "Cursos/Imersões paralelos (ex: IA's - banco de dado - ciência de dados entre outros...)",
+    "Exercícios físicos"
+]
+
 # Se não existir ainda, inicializa
 if "cursos" not in st.session_state:
-    st.session_state["cursos"] = ["Curso principal (1h30)", "Exercícios práticos (30min)"]
+    st.session_state["cursos"] = cursos_padrao.copy()
 
 if "plano_estudos" not in st.session_state:
     st.session_state["plano_estudos"] = {}
@@ -66,8 +77,10 @@ if st.sidebar.button("🗑️ Remover curso") and curso_remover:
         st.session_state["cursos"].remove(curso_remover)
         # Remove também do plano_estudos
         for dia in st.session_state["plano_estudos"]:
-            if curso_remover in st.session_state["plano_estudos"][dia]:
-                st.session_state["plano_estudos"][dia].remove(curso_remover)
+            st.session_state["plano_estudos"][dia] = [
+                atividade for atividade in st.session_state["plano_estudos"][dia]
+                if atividade["curso"] != curso_remover
+            ]
     st.experimental_rerun()
 
 # -----------------------------
@@ -89,13 +102,23 @@ for dia in dias_semana:
     if dia not in st.session_state["plano_estudos"]:
         st.session_state["plano_estudos"][dia] = []
 
+    atividades_existentes = [a["curso"] for a in st.session_state["plano_estudos"][dia]]
+
     atividades_dia = st.sidebar.multiselect(
         f"{dia} - selecione cursos:",
         options=st.session_state["cursos"],
-        default=st.session_state["plano_estudos"][dia],
+        default=atividades_existentes,
         key=f"multiselect_{dia}"
     )
-    st.session_state["plano_estudos"][dia] = atividades_dia
+
+    # Atualiza plano de estudos mantendo horários já definidos
+    novo_plano = []
+    for atividade in atividades_dia:
+        horario = next((a["horario"] for a in st.session_state["plano_estudos"][dia] if a["curso"] == atividade), "")
+        horario_input = st.sidebar.text_input(f"{dia} - horário para {atividade}", value=horario, key=f"horario_{dia}_{atividade}")
+        novo_plano.append({"curso": atividade, "horario": horario_input})
+
+    st.session_state["plano_estudos"][dia] = novo_plano
 
 # -----------------------------
 # GERAR CALENDÁRIO DE ESTUDOS
@@ -116,12 +139,13 @@ progresso = carregar_progresso()
 for dia, atividades in datas_com_atividades.items():
     st.subheader(dia)
     for atividade in atividades:
-        checked = progresso.get(dia, {}).get(atividade, False)
-        novo_estado = st.checkbox(atividade, value=checked, key=f"{dia}-{atividade}")
+        nome = f"{atividade['curso']} ({atividade['horario']})" if atividade["horario"] else atividade["curso"]
+        checked = progresso.get(dia, {}).get(nome, False)
+        novo_estado = st.checkbox(nome, value=checked, key=f"{dia}-{nome}")
 
         if dia not in progresso:
             progresso[dia] = {}
-        progresso[dia][atividade] = novo_estado
+        progresso[dia][nome] = novo_estado
 
 if st.button("💾 Salvar progresso no Firebase"):
     if salvar_progresso(progresso):
@@ -136,11 +160,12 @@ if st.button("📊 Exportar cronograma para Excel"):
     linhas = []
     for dia, atividades in datas_com_atividades.items():
         for atividade in atividades:
-            concluido = progresso.get(dia, {}).get(atividade, False)
+            nome = f"{atividade['curso']} ({atividade['horario']})" if atividade["horario"] else atividade["curso"]
+            concluido = progresso.get(dia, {}).get(nome, False)
             linhas.append({
                 "Data": dia.split(" - ")[1],
                 "Dia": dia.split(" - ")[0],
-                "Atividade": atividade,
+                "Atividade": nome,
                 "Concluído": "✅" if concluido else "❌"
             })
 
