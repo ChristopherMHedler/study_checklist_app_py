@@ -36,33 +36,47 @@ def salvar_progresso(progresso):
 # CONFIGURAÇÕES DO USUÁRIO
 # -----------------------------
 st.sidebar.header("⚙️ Configurações do Plano")
-data_inicio = st.sidebar.date_input("Data de início", datetime.date(2025, 9, 22))
+data_inicio = st.sidebar.date_input("Data de início", datetime.date.today())
 quant_semanas = st.sidebar.number_input("Quantas semanas?", min_value=1, max_value=52, value=12)
 
-st.sidebar.write("✏️ Personalize as atividades de cada dia:")
+# -----------------------------
+# GERENCIAR CURSOS
+# -----------------------------
+st.sidebar.subheader("📚 Cursos")
+if "cursos" not in st.session_state:
+    st.session_state["cursos"] = ["Curso principal (1h30)", "Exercícios práticos (30min)"]
 
-plano_estudos = {}
+novo_curso = st.sidebar.text_input("Adicionar novo curso")
+if st.sidebar.button("➕ Adicionar curso") and novo_curso:
+    st.session_state["cursos"].append(novo_curso)
+    novo_curso = ""
+
+curso_remover = st.sidebar.selectbox("Remover curso", [""] + st.session_state["cursos"])
+if st.sidebar.button("🗑️ Remover curso") and curso_remover:
+    st.session_state["cursos"].remove(curso_remover)
+
+# -----------------------------
+# PLANO POR DIA
+# -----------------------------
 dias_semana = [
-    "Segunda-feira (2h)",
-    "Terça-feira (2h)",
-    "Quarta-feira (2h)",
-    "Quinta-feira (2h)",
-    "Sexta-feira (2h)",
-    "Sábado (até 6h – tarde/noite)",
-    "Domingo (até 6h – manhã/tarde/noite)"
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado",
+    "Domingo"
 ]
 
+st.sidebar.subheader("📅 Atividades por dia")
+plano_estudos = {}
 for dia in dias_semana:
-    st.sidebar.subheader(dia)
-    atividades = st.sidebar.text_area(
-        f"Atividades para {dia}",
-        value=";\n".join([
-            "Curso principal (1h30)",
-            "Exercícios práticos (30min)"
-        ]),
-        height=100
+    atividades_dia = st.sidebar.multiselect(
+        f"{dia} - selecione cursos:",
+        options=st.session_state["cursos"],
+        default=[]
     )
-    plano_estudos[dia] = [a.strip() for a in atividades.split(";") if a.strip()]
+    plano_estudos[dia] = atividades_dia
 
 # -----------------------------
 # GERAR CALENDÁRIO DE ESTUDOS
@@ -122,4 +136,3 @@ if st.button("📊 Exportar cronograma para Excel"):
             file_name=arquivo_excel,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
