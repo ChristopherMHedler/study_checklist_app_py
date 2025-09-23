@@ -43,17 +43,32 @@ quant_semanas = st.sidebar.number_input("Quantas semanas?", min_value=1, max_val
 # GERENCIAR CURSOS
 # -----------------------------
 st.sidebar.subheader("📚 Cursos")
+
+# Se não existir ainda, inicializa
 if "cursos" not in st.session_state:
     st.session_state["cursos"] = ["Curso principal (1h30)", "Exercícios práticos (30min)"]
 
+if "plano_estudos" not in st.session_state:
+    st.session_state["plano_estudos"] = {}
+
+# Input para adicionar curso
 novo_curso = st.sidebar.text_input("Adicionar novo curso")
 if st.sidebar.button("➕ Adicionar curso") and novo_curso:
-    st.session_state["cursos"].append(novo_curso)
-    novo_curso = ""
+    if novo_curso not in st.session_state["cursos"]:
+        st.session_state["cursos"].append(novo_curso)
+    st.sidebar.success(f"Curso '{novo_curso}' adicionado!")
+    st.experimental_rerun()
 
+# Remover curso
 curso_remover = st.sidebar.selectbox("Remover curso", [""] + st.session_state["cursos"])
 if st.sidebar.button("🗑️ Remover curso") and curso_remover:
-    st.session_state["cursos"].remove(curso_remover)
+    if curso_remover in st.session_state["cursos"]:
+        st.session_state["cursos"].remove(curso_remover)
+        # Remove também do plano_estudos
+        for dia in st.session_state["plano_estudos"]:
+            if curso_remover in st.session_state["plano_estudos"][dia]:
+                st.session_state["plano_estudos"][dia].remove(curso_remover)
+    st.experimental_rerun()
 
 # -----------------------------
 # PLANO POR DIA
@@ -69,14 +84,18 @@ dias_semana = [
 ]
 
 st.sidebar.subheader("📅 Atividades por dia")
-plano_estudos = {}
+
 for dia in dias_semana:
+    if dia not in st.session_state["plano_estudos"]:
+        st.session_state["plano_estudos"][dia] = []
+
     atividades_dia = st.sidebar.multiselect(
         f"{dia} - selecione cursos:",
         options=st.session_state["cursos"],
-        default=[]
+        default=st.session_state["plano_estudos"][dia],
+        key=f"multiselect_{dia}"
     )
-    plano_estudos[dia] = atividades_dia
+    st.session_state["plano_estudos"][dia] = atividades_dia
 
 # -----------------------------
 # GERAR CALENDÁRIO DE ESTUDOS
@@ -87,7 +106,7 @@ for semana in range(quant_semanas):
         data_atual = data_inicio + datetime.timedelta(days=(semana * 7) + i)
         data_formatada = data_atual.strftime("%d/%m/%Y")
         titulo = f"{dia} - {data_formatada}"
-        datas_com_atividades[titulo] = plano_estudos[dia]
+        datas_com_atividades[titulo] = st.session_state["plano_estudos"][dia]
 
 # -----------------------------
 # APP STREAMLIT
