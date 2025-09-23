@@ -11,7 +11,7 @@ st.write("Monte e acompanhe seu cronograma. O progresso será salvo no Firebase.
 # -----------------------------
 # CONFIG FIREBASE
 # -----------------------------
-FIREBASE_URL = "https://SEU-PROJETO.firebaseio.com"
+FIREBASE_URL = "https://study-a5b49-default-rtdb.firebaseio.com/"
 
 def carregar_progresso():
     url = f"{FIREBASE_URL}/progresso.json"
@@ -122,3 +122,4 @@ if st.button("📊 Exportar cronograma para Excel"):
             file_name=arquivo_excel,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
